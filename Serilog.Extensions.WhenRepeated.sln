@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Extensions.WhenRepeated", "Serilog.Extensions.WhenRepeated\Serilog.Extensions.WhenRepeated.csproj", "{8B3CCB86-1E0C-4FFD-9CB0-F0AFEA503E06}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Extensions.WhenRepeated.Tests", "Serilog.Extensions.WhenRepeated.Tests\Serilog.Extensions.WhenRepeated.Tests.csproj", "{D83570B0-1A32-4A85-8FE8-E8E7E8F28A33}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B3CCB86-1E0C-4FFD-9CB0-F0AFEA503E06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B3CCB86-1E0C-4FFD-9CB0-F0AFEA503E06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B3CCB86-1E0C-4FFD-9CB0-F0AFEA503E06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B3CCB86-1E0C-4FFD-9CB0-F0AFEA503E06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D83570B0-1A32-4A85-8FE8-E8E7E8F28A33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D83570B0-1A32-4A85-8FE8-E8E7E8F28A33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D83570B0-1A32-4A85-8FE8-E8E7E8F28A33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D83570B0-1A32-4A85-8FE8-E8E7E8F28A33}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {06C6CA69-DD30-42B6-902F-81AE8E3E815C}
+	EndGlobalSection
+EndGlobal
