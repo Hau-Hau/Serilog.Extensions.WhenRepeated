@@ -27,7 +27,7 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        timeout: (_, _) => TimeSpan.Zero,
+                        timeout: (_, __) => TimeSpan.Zero,
                         onRepeat: (current, _) =>
                         {
                             return new LogEvent(
@@ -58,7 +58,7 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) =>
                         {
                             return new LogEvent(
@@ -88,7 +88,7 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) => null))
                 .CreateLogger();
 
@@ -107,8 +107,8 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.WhenRepeated,
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        firstStrategy: (_, __) => OnFirstStrategy.WhenRepeated,
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) => new LogEvent(
                                 timestamp: current.Timestamp,
                                 level: current.Level,
@@ -140,8 +140,8 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.WhenRepeated,
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        firstStrategy: (_, __) => OnFirstStrategy.WhenRepeated,
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) => new LogEvent(
                                 timestamp: current.Timestamp,
                                 level: current.Level,
@@ -165,8 +165,8 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.AsRepeated,
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        firstStrategy: (_, __) => OnFirstStrategy.AsRepeated,
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) =>
                         {
                             return new LogEvent(
@@ -191,8 +191,8 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.Ignore,
-                        timeout: (_, _) => TimeSpan.Zero))
+                        firstStrategy: (_, __) => OnFirstStrategy.Ignore,
+                        timeout: (_, __) => TimeSpan.Zero))
                 .CreateLogger();
 
             logger.Information(DefaultMessage);
@@ -210,8 +210,8 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                 .WhenRepeated(
                     configureWrappedSink: x => x.Sink(sink),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.Default,
-                        timeout: (_, _) => TimeSpan.Zero))
+                        firstStrategy: (_, __) => OnFirstStrategy.Default,
+                        timeout: (_, __) => TimeSpan.Zero))
                 .CreateLogger();
 
             logger.Information($"{RepeatedMessage} {{repeatCount}}");
@@ -230,7 +230,7 @@ namespace Serilog.Extensions.WhenRepeated.Tests
         [Fact]
         public void WhenRepeatedMessagesCountEnricherPropertyNameIsNullOrWhitespace_ThenThrowException()
         {
-            var act = () =>
+            var act = new Action(() =>
             {
                 new LoggerConfiguration()
                     .Enrich.WithRepeatedMessagesCount(" ")
@@ -238,10 +238,10 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                     .WhenRepeated(
                         configureWrappedSink: x => x.Sink(sink),
                         options: new WhenRepeatedOptions(
-                            firstStrategy: (_, _) => OnFirstStrategy.Default,
-                            timeout: (_, _) => TimeSpan.Zero))
+                            firstStrategy: (_, __) => OnFirstStrategy.Default,
+                            timeout: (_, __) => TimeSpan.Zero))
                     .CreateLogger();
-            };
+            });
             act.Should().Throw<ArgumentNullException>();
         }
 
@@ -250,7 +250,7 @@ namespace Serilog.Extensions.WhenRepeated.Tests
         {
             var options = new WhenRepeatedOptions(
                 onRepeat: (logEvent, _) => logEvent,
-                compare: (_, _) => true,
+                compare: (_, __) => true,
                 timeout: TimeSpan.FromSeconds(6),
                 firstStrategy: OnFirstStrategy.AsRepeated
                 );
@@ -261,15 +261,15 @@ namespace Serilog.Extensions.WhenRepeated.Tests
 
             options = new WhenRepeatedOptions(
                 onRepeat: (logEvent, _) => logEvent,
-                timeout: (_, _) => TimeSpan.FromSeconds(6));
+                timeout: (_, __) => TimeSpan.FromSeconds(6));
             options.OnRepeat.Should().NotBeNull();
             options.Timeout.Invoke(It.IsAny<LogEvent>(), It.IsAny<LogEvent>()).Should().Be(TimeSpan.FromSeconds(6));
             options.FirstStrategy.Invoke(It.IsAny<LogEvent>(), It.IsAny<LogEvent>()).Should().Be(OnFirstStrategy.Default);
 
             options = new WhenRepeatedOptions(
                 onRepeat: (logEvent, _) => logEvent,
-                compare: (_, _) => true,
-                timeout: (_, _) => TimeSpan.FromSeconds(6));
+                compare: (_, __) => true,
+                timeout: (_, __) => TimeSpan.FromSeconds(6));
             options.OnRepeat.Should().NotBeNull();
             options.Compare.Invoke(It.IsAny<LogEvent>(), It.IsAny<LogEvent>()).Should().BeTrue();
             options.Timeout.Invoke(It.IsAny<LogEvent>(), It.IsAny<LogEvent>()).Should().Be(TimeSpan.FromSeconds(6));
@@ -277,9 +277,9 @@ namespace Serilog.Extensions.WhenRepeated.Tests
 
             options = new WhenRepeatedOptions(
                 onRepeat: (logEvent, _) => logEvent,
-                compare: (_, _) => true,
-                timeout: (_, _) => TimeSpan.FromSeconds(value: 6),
-                firstStrategy: (_, _) => OnFirstStrategy.AsRepeated);
+                compare: (_, __) => true,
+                timeout: (_, __) => TimeSpan.FromSeconds(value: 6),
+                firstStrategy: (_, __) => OnFirstStrategy.AsRepeated);
             options.OnRepeat.Should().NotBeNull();
             options.Compare.Invoke(It.IsAny<LogEvent>(), It.IsAny<LogEvent>()).Should().BeTrue();
             options.Timeout.Invoke(It.IsAny<LogEvent>(), It.IsAny<LogEvent>()).Should().Be(TimeSpan.FromSeconds(6));

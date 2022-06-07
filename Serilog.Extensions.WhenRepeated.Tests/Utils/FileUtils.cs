@@ -19,8 +19,10 @@ namespace Serilog.Extensions.WhenRepeated.Tests.Utils
                     {
                         continue;
                     }
+
                     file.Add(line);
                 }
+
                 return file.ToArray();
             }
         }

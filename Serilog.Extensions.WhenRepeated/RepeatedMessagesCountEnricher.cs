@@ -12,7 +12,6 @@ namespace Serilog.Extensions.WhenRepeated
             this.propertyName = propertyName;
         }
 
-
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
             if (!logEvent.Properties.ContainsKey(Constants.RepeatedMessagesCountPropertyNameProperty))

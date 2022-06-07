@@ -23,7 +23,6 @@ namespace Serilog.Extensions.WhenRepeated
         public void Emit(LogEvent logEvent)
         {
             var firstStrategy = options.FirstStrategy.Invoke(logEvent, previousLogEvent);
-
             var repeatCountPropertyName = logEvent.Properties.TryGetValue(Constants.RepeatedMessagesCountPropertyNameProperty, out var _repeatCountPropertyName)
                 ? _repeatCountPropertyName.ToString().Replace("\"", "")
                 : string.Empty;

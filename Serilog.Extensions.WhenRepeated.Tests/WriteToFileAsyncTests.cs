@@ -16,43 +16,38 @@ namespace Serilog.Extensions.WhenRepeated.Tests
         private const string DefaultMessage = nameof(DefaultMessage);
         private const string RepeatedMessage = nameof(RepeatedMessage);
         private static readonly MessageTemplate RepeatedMessageTemplate = new MessageTemplate(new MessageTemplateParser().Parse(RepeatedMessage).Tokens);
-        public static readonly string LogFilePath = Path.Combine(Path.GetTempPath(), "Serilog.Extensions.WhenRepeated.Tests.log");
+        public static readonly string LogFilesDirectoryPath = Path.Combine(Path.GetTempPath(), "Serilog.Extensions.WhenRepeated");
 
+        private readonly string logFilePath;
         public WriteToFileAsyncTests()
         {
-            if (File.Exists(LogFilePath))
-            {
-                Log.CloseAndFlush();
-                Policy.Handle<IOException>()
-                    .WaitAndRetry(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                    .Execute(() => File.Delete(LogFilePath));
-            }
+            logFilePath = Path.Combine(LogFilesDirectoryPath, $"{Guid.NewGuid()}.log");
         }
 
         public void Dispose()
         {
-            if (File.Exists(LogFilePath))
+            if (File.Exists(logFilePath))
             {
                 Log.CloseAndFlush();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 Policy.Handle<IOException>()
                     .WaitAndRetry(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                    .Execute(() => File.Delete(LogFilePath));
+                    .Execute(() => File.Delete(logFilePath));
             }
         }
 
         [Fact]
         public async Task WhenTimeoutIsZero_ThenWriteEveryRepeatedLogAsRepeatedMessage()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        timeout: (_, _) => TimeSpan.Zero,
+                        timeout: (_, __) => TimeSpan.Zero,
                         onRepeat: (current, _) =>
                         {
                             return new LogEvent(
@@ -65,13 +60,14 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                     )
                 .CreateLogger();
 
-            Log.Logger.Information($"{DefaultMessage}");
-            Log.Logger.Information($"{DefaultMessage}");
-            Log.Logger.Information($"{DefaultMessage}");
+            logger.Information($"{DefaultMessage}");
+            logger.Information($"{DefaultMessage}");
+            logger.Information($"{DefaultMessage}");
+            (logger as IDisposable)?.Dispose();
 
             var lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
             lines.Should().ContainSingle(x => x.EndsWith(DefaultMessage));
             lines.Count(x => x.EndsWith(RepeatedMessage)).Should().Be(2);
         }
@@ -80,14 +76,14 @@ namespace Serilog.Extensions.WhenRepeated.Tests
         [Fact]
         public async Task WhenTimeoutIsOneSecond_ThenIgnoreRepeatedMessagesLoggedEarlierThanOneSecondAgo()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) =>
                         {
                             return new LogEvent(
@@ -99,14 +95,15 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                         }))
                 .CreateLogger();
 
-            Log.Logger.Information(DefaultMessage);
-            Log.Logger.Information(DefaultMessage);
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            Log.Logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            await Task.Delay(TimeSpan.FromSeconds(1.1));
+            logger.Information(DefaultMessage);
+            (logger as IDisposable)?.Dispose();
 
             var lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
             lines.Should().ContainSingle(x => x.EndsWith(DefaultMessage));
             lines.Should().ContainSingle(x => x.EndsWith(RepeatedMessage));
         }
@@ -114,39 +111,40 @@ namespace Serilog.Extensions.WhenRepeated.Tests
         [Fact]
         public async Task WhenOnRepeatCallbackReturnsNull_ThenLogOnlyFirstMessage()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
-                        onRepeat: (_, _) => null))
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
+                        onRepeat: (_, __) => null))
                 .CreateLogger();
 
-            Log.Logger.Information(DefaultMessage);
-            Log.Logger.Information(DefaultMessage);
-            Log.Logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            (logger as IDisposable)?.Dispose();
 
             var lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
             lines.Should().ContainSingle(x => x.EndsWith(DefaultMessage));
         }
 
         [Fact]
         public async Task GivenFirstStrategyIsWhenRepeated_WhenMessageLoggedTwice_ThenDontLogAnyMessage()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.WhenRepeated,
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        firstStrategy: (_, __) => OnFirstStrategy.WhenRepeated,
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) => new LogEvent(
                                 timestamp: current.Timestamp,
                                 level: current.Level,
@@ -155,43 +153,34 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                                 properties: Array.Empty<LogEventProperty>())))
                 .CreateLogger();
 
-            Log.Logger.Information(DefaultMessage);
-            Log.Logger.Information(DefaultMessage);
-
+            logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
             await Task.Delay(TimeSpan.FromSeconds(1));
-            var lines = await Policy.Handle<IOException>()
+            logger.Information(RepeatedMessage);
+            logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            (logger as IDisposable)?.Dispose();
+
+            var lines = await Policy.Handle<IOException>().OrResult<string[]>(resultPredicate: x => x.Length == 0)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
-            lines.Count(x => x == DefaultMessage)
-                .Should().Be(0, $"'{DefaultMessage}' has been logged second time in shorter time than 1 second");
-
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            Log.Logger.Information(RepeatedMessage);
-
-            Log.Logger.Information(DefaultMessage);
-            Log.Logger.Information(DefaultMessage);
-
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            lines = await Policy.Handle<IOException>().OrResult<string[]>(resultPredicate: x => x.Length == 0)
-                .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
             lines
                 .Count(x => x.EndsWith(DefaultMessage))
-                .Should().Be(0, $"'{DefaultMessage}' has been logged second time in shorter time than 1 second and has been preceded by '{RepeatedMessage}' message");
+                .Should().Be(0, $"'{DefaultMessage}' has been logged second time in shorter time than 1 second");
         }
 
         [Fact]
         public async Task GivenFirstStrategyIsWhenRepeated_WhenMessageLoggedSecondTimeAfterTimeout_ThenLogMessage()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.WhenRepeated,
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        firstStrategy: (_, __) => OnFirstStrategy.WhenRepeated,
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) => new LogEvent(
                                 timestamp: current.Timestamp,
                                 level: current.Level,
@@ -200,29 +189,29 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                                 properties: Array.Empty<LogEventProperty>())))
                 .CreateLogger();
 
-            Log.Logger.Information(DefaultMessage);
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            Log.Logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            await Task.Delay(TimeSpan.FromSeconds(1.1));
+            logger.Information(DefaultMessage);
+            (logger as IDisposable)?.Dispose();
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
             var lines = await Policy.Handle<IOException>().OrResult<string[]>(resultPredicate: x => x.Length == 0)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
             lines.Should().ContainSingle(x => x.EndsWith(DefaultMessage));
         }
 
         [Fact]
         public async Task WhenFirstStrategyIsAsRepeated_ThenInvokeOnRepeatEvenOnFirstLog()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.AsRepeated,
-                        timeout: (_, _) => TimeSpan.FromSeconds(1),
+                        firstStrategy: (_, __) => OnFirstStrategy.AsRepeated,
+                        timeout: (_, __) => TimeSpan.FromSeconds(1),
                         onRepeat: (current, _) =>
                         {
                             return new LogEvent(
@@ -234,80 +223,67 @@ namespace Serilog.Extensions.WhenRepeated.Tests
                         }))
                 .CreateLogger();
 
-            Log.Logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            (logger as IDisposable)?.Dispose();
 
             var lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
-            lines.Should()
-                .ContainSingle(x => x.EndsWith(RepeatedMessage));
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
+            lines.Should().ContainSingle(x => x.EndsWith(RepeatedMessage));
         }
 
         [Fact]
         public async Task WhenFirstStrategyIsIgnore_ThenLogSecondMessage()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.Ignore,
-                        timeout: (_, _) => TimeSpan.Zero))
+                        firstStrategy: (_, __) => OnFirstStrategy.Ignore,
+                        timeout: (_, __) => TimeSpan.Zero))
                 .CreateLogger();
 
-            Log.Logger.Information(DefaultMessage);
-            Log.Logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            logger.Information(DefaultMessage);
+            (logger as IDisposable)?.Dispose();
 
             var lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
-            lines.Should()
-                .ContainSingle(x => x.EndsWith(DefaultMessage));
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
+            lines.Should().ContainSingle(x => x.EndsWith(DefaultMessage));
         }
 
         [Fact]
         public async Task WhenEncrichWithRepeatedMessagesCountEnabled_ThenRepeatCountAvailableInTemplate()
         {
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .Enrich.WithRepeatedMessagesCount("repeatCount")
                 .WriteTo
                 .WhenRepeated(
                     configureWrappedSink: x => x.Async(y => y.File(
-                        path: LogFilePath,
+                        path: logFilePath,
                         rollingInterval: RollingInterval.Infinite)),
                     options: new WhenRepeatedOptions(
-                        firstStrategy: (_, _) => OnFirstStrategy.Default,
-                        timeout: (_, _) => TimeSpan.Zero))
+                        firstStrategy: (_, __) => OnFirstStrategy.Default,
+                        timeout: (_, __) => TimeSpan.Zero))
                 .CreateLogger();
 
-            Log.Logger.Information($"{RepeatedMessage} {{repeatCount}}");
-            var lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
-                .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
-            lines.Last().Should().EndWith($"{RepeatedMessage} \"0\"");
+            logger.Information($"{RepeatedMessage} {{repeatCount}}");
+            logger.Information($"{RepeatedMessage} {{repeatCount}}");
+            logger.Information($"{RepeatedMessage} {{repeatCount}}");
+            logger.Information($"{DefaultMessage} {{repeatCount}}");
+            (logger as IDisposable)?.Dispose();
 
-            Log.Logger.Information($"{RepeatedMessage} {{repeatCount}}");
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
+            var lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length != 4)
                 .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
-            lines.Last().Should().EndWith($"{RepeatedMessage} \"1\"");
-
-            Log.Logger.Information($"{RepeatedMessage} {{repeatCount}}");
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
-                .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
-            lines.Last().Should().EndWith($"{RepeatedMessage} \"2\"");
-
-            Log.Logger.Information($"{DefaultMessage} {{repeatCount}}");
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            lines = await Policy.Handle<IOException>().OrResult<string[]>(x => x.Length == 0)
-                .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(1))
-                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(LogFilePath));
-            lines.Last().Should().EndWith($"{DefaultMessage} \"0\"");
+                .ExecuteAsync(async () => await FileUtils.ReadAllLinesSafeAsync(logFilePath));
+            lines[0].Should().EndWith($"{RepeatedMessage} \"0\"");
+            lines[1].Should().EndWith($"{RepeatedMessage} \"1\"");
+            lines[2].Should().EndWith($"{RepeatedMessage} \"2\"");
+            lines[3].Should().EndWith($"{DefaultMessage} \"0\"");
         }
     }
 }

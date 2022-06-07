@@ -5,13 +5,13 @@
 
 A wrapper for other Serilog sinks. Matches when message has already been logged. Useful if having an aggressive logger, and wants to throttle the output.
 
-### Getting started
+<!-- ### Getting started -->
 
-# Install from [NuGet](https://nuget.org/packages/TODO):
+<!-- # Install from [NuGet](https://nuget.org/packages/TODO): -->
 
-```powershell
+<!-- ```powershell
 Install-Package TODO
-```
+``` -->
 
 ### Minimal example
 ```csharp
@@ -35,3 +35,13 @@ new LoggerConfiguration()
       })).CreateLogger();
 ...
 ```
+
+### Options
+The WhenRepeatedOptions type constructor exposes the following members.
+
+| Name  | Description |
+| ------------- | ------------- |
+| onRepeat  | Action to be taken when filter matches.  |
+| compare  | Statement of that how to compare current log with previous log event.  |
+| timeout  | Duration after which message if duplicated will be logged.  |
+| firstStrategy  | Strategy that determines how to handle first (not duplicated) log event.  |

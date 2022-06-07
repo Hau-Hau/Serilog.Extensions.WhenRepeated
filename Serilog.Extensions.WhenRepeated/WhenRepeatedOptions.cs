@@ -6,6 +6,11 @@ namespace Serilog.Extensions.WhenRepeated
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S3427:Method overloads with default parameter values should not overlap ", Justification = "<Pending>")]
     public class WhenRepeatedOptions
     {
+        public delegate LogEvent OnRepeatCallback(LogEvent current, LogEvent? previous);
+        public delegate bool Comparer(LogEvent current, LogEvent? previous);
+        public delegate TimeSpan TimeoutGetter(LogEvent current, LogEvent? previous);
+        public delegate OnFirstStrategy OnFirstStrategyGetter(LogEvent current, LogEvent? previous);
+
         /// <summary>
         /// Initializes an instance of the <see cref="WhenRepeatedOptions"/> using the given constructor call including its argument values.
         /// </summary>
@@ -14,8 +19,8 @@ namespace Serilog.Extensions.WhenRepeated
         /// <param name="timeout">Duration after which message if duplicated will be logged.</param>
         /// <param name="firstStrategy">Strategy that determines how to handle first (not duplicated) log event.</param>
         public WhenRepeatedOptions(
-            Func<LogEvent, LogEvent?, LogEvent?>? onRepeat = null,
-            Func<LogEvent, LogEvent?, bool>? compare = null,
+            OnRepeatCallback? onRepeat = null,
+            Comparer? compare = null,
             TimeSpan? timeout = null,
             OnFirstStrategy? firstStrategy = null)
         {
@@ -23,12 +28,12 @@ namespace Serilog.Extensions.WhenRepeated
             Compare = compare ?? Compare;
             if (timeout != null)
             {
-                Timeout = (_, _) => (TimeSpan)timeout;
+                Timeout = (_, __) => (TimeSpan)timeout;
             }
 
             if (firstStrategy != null)
             {
-                FirstStrategy = (_, _) => (OnFirstStrategy)firstStrategy;
+                FirstStrategy = (_, __) => (OnFirstStrategy)firstStrategy;
             }
         }
 
@@ -37,7 +42,7 @@ namespace Serilog.Extensions.WhenRepeated
         /// </summary>
         /// <param name="onRepeat">The function that provides new log event object as substitute of duplicated log event object.</param>
         /// <param name="timeout">The function that provides the duration after which message if duplicated will be logged.</param>
-        public WhenRepeatedOptions(Func<LogEvent, LogEvent?, LogEvent?>? onRepeat = null)
+        public WhenRepeatedOptions(OnRepeatCallback? onRepeat = null)
         {
             OnRepeat = onRepeat;
         }
@@ -48,8 +53,8 @@ namespace Serilog.Extensions.WhenRepeated
         /// <param name="onRepeat">The function that provides new log event object as substitute of duplicated log event object.</param>
         /// <param name="timeout">The function that provides the duration after which message if duplicated will be logged.</param>
         public WhenRepeatedOptions(
-            Func<LogEvent, LogEvent?, LogEvent?>? onRepeat = null,
-            Func<LogEvent, LogEvent?, TimeSpan>? timeout = null)
+            OnRepeatCallback? onRepeat = null,
+            TimeoutGetter? timeout = null)
         {
             OnRepeat = onRepeat;
             Timeout = timeout ?? Timeout;
@@ -62,9 +67,9 @@ namespace Serilog.Extensions.WhenRepeated
         /// <param name="compare">The function that provides statement of that how to compare current log with previous log event.</param>
         /// <param name="timeout">The function that provides the duration after which message if duplicated will be logged.</param>
         public WhenRepeatedOptions(
-            Func<LogEvent, LogEvent?, LogEvent?>? onRepeat = null,
-            Func<LogEvent, LogEvent?, bool>? compare = null,
-            Func<LogEvent, LogEvent?, TimeSpan>? timeout = null)
+            OnRepeatCallback? onRepeat = null,
+            Comparer? compare = null,
+            TimeoutGetter? timeout = null)
         {
             OnRepeat = onRepeat;
             Compare = compare ?? Compare;
@@ -79,10 +84,10 @@ namespace Serilog.Extensions.WhenRepeated
         /// <param name="timeout">The function that provides the duration after which message if duplicated will be logged.</param>
         /// <param name="firstStrategy">The function that provides the strategy that determines how to handle first (not duplicated) log event.</param>
         public WhenRepeatedOptions(
-            Func<LogEvent, LogEvent?, LogEvent?>? onRepeat = null,
-            Func<LogEvent, LogEvent?, bool>? compare = null,
-            Func<LogEvent, LogEvent?, TimeSpan>? timeout = null,
-            Func<LogEvent, LogEvent?, OnFirstStrategy>? firstStrategy = null)
+            OnRepeatCallback? onRepeat = null,
+            Comparer? compare = null,
+            TimeoutGetter? timeout = null,
+            OnFirstStrategyGetter? firstStrategy = null)
         {
             OnRepeat = onRepeat;
             Compare = compare ?? Compare;
@@ -90,9 +95,9 @@ namespace Serilog.Extensions.WhenRepeated
             FirstStrategy = firstStrategy ?? FirstStrategy;
         }
 
-        internal Func<LogEvent, LogEvent?, LogEvent?>? OnRepeat { get; private set; }
-        internal Func<LogEvent, LogEvent?, bool> Compare { get; private set; } = (current, previous) => current.RenderMessage() == previous?.RenderMessage() && current?.Level == previous?.Level;
-        internal Func<LogEvent, LogEvent?, TimeSpan> Timeout { get; private set; } = (current, previous) => Constants.DefaultTimeout;
-        internal Func<LogEvent, LogEvent?, OnFirstStrategy> FirstStrategy { get; private set; } = (current, previous) => OnFirstStrategy.Default;
+        internal OnRepeatCallback? OnRepeat { get; private set; }
+        internal Comparer Compare { get; private set; } = (current, previous) => current.RenderMessage() == previous?.RenderMessage() && current?.Level == previous?.Level;
+        internal TimeoutGetter Timeout { get; private set; } = (current, previous) => Constants.DefaultTimeout;
+        internal OnFirstStrategyGetter FirstStrategy { get; private set; } = (current, previous) => OnFirstStrategy.Default;
     }
 }
