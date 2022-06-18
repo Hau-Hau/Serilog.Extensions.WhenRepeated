@@ -20,6 +20,7 @@ Install-Package TODO
 private static readonly MessageTemplate RepeatedMessageTemplate = new MessageTemplate(new MessageTemplateParser().Parse(".").Tokens);
 
 new LoggerConfiguration()
+  .Enrich.WithRepeatedMessagesCount("repeatCount")
   .WriteTo
   .WhenRepeated(
     configureWrappedSink: x => x.Async(y.File("/path/to/log.txt")),
@@ -45,3 +46,20 @@ The WhenRepeatedOptions type constructor exposes the following members.
 | compare  | Statement of that how to compare current log with previous log event.  |
 | timeout  | Duration after which message if duplicated will be logged.  |
 | firstStrategy  | Strategy that determines how to handle first (not duplicated) log event.  |
+
+### Enrichment
+Enrich Serilog events with repeated messages count property.
+
+```csharp
+...
+new LoggerConfiguration()
+  .Enrich.WithRepeatedMessagesCount("repeatCount") // Set name under which property will be available
+  .WriteTo
+  .WhenRepeated(
+    configureWrappedSink: x => x.Async(y.File("/path/to/log.txt")),
+    options: new WhenRepeatedOptions() // Default options, needed to enable counting. By default increment repeated messages count when same message occurs in 10 seconds time interval.
+  ).CreateLogger();
+...
+logger.Information(messageTemplate: "{repeatCount}");
+```
+

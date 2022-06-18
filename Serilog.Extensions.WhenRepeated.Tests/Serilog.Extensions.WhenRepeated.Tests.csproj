@@ -7,12 +7,6 @@
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<None Update="xunit.runner.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-
 	<PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net[6-9].\d')) or $([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net\d{2}.\d'))">
 		<DefineConstants>NET6_0_OR_GREATER</DefineConstants>
 	</PropertyGroup>
