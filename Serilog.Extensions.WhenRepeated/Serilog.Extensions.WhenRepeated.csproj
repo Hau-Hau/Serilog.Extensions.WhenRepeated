@@ -4,7 +4,28 @@
 		<TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0</TargetFrameworks>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
+
+	<PropertyGroup>
+		<SolutionDir>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</SolutionDir>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<PackageId>Serilog.Extensions.WhenRepeated</PackageId>
+		<PackageVersion>1.0.0</PackageVersion>
+		<Description>A wrapper for other Serilog sinks. Matches when message has already been logged. Useful if having an aggressive logger, and wants to throttle the output.</Description>
+		<RepositoryUrl>https://github.com/Hau-Hau/Serilog.Extensions.WhenRepeated</RepositoryUrl>
+		<RespositoryType>git</RespositoryType>
+		<PackageTags>serilog file repeat repeated WhenRepeated</PackageTags>
+		<Authors>Piotr Michalewicz</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageIcon>assets/serilog-extension-nuget.png</PackageIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="$(SolutionDir)\assets\serilog-extension-nuget.png" Pack="true" PackagePath="/assets/serilog-extension-nuget.png"/>
+	</ItemGroup>
 
 	<PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^netcoreapp3.\d')) or $([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net5.0'))">
 		<DefineConstants>NETCOREAPP3_1_OR_NET5_0</DefineConstants>
