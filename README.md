@@ -5,13 +5,13 @@
 
 A wrapper for other Serilog sinks. Matches when message has already been logged. Useful if having an aggressive logger, and wants to throttle the output.
 
-<!-- ### Getting started -->
+### Getting started
 
-<!-- # Install from [NuGet](https://nuget.org/packages/TODO): -->
+#### Install from [NuGet](https://www.nuget.org/packages/Serilog.Extensions.WhenRepeated):
 
-<!-- ```powershell
-Install-Package TODO
-``` -->
+```powershell
+Install-Package Serilog.Extensions.WhenRepeated 
+```
 
 ### Minimal example
 ```csharp
