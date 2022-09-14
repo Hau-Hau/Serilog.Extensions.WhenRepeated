@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace Serilog.Extensions.WhenRepeated
 {
-    internal class WhenRepeatedEventSink : ILogEventSink, IDisposable
+    internal sealed class WhenRepeatedEventSink : ILogEventSink, IDisposable
     {
         private readonly ILogEventSink wrappedSink;
         private readonly WhenRepeatedOptions options;
@@ -19,6 +19,8 @@ namespace Serilog.Extensions.WhenRepeated
             this.wrappedSink = wrappedSink;
             this.options = options;
         }
+
+        ~WhenRepeatedEventSink() => Dispose(false);
 
         public void Emit(LogEvent logEvent)
         {
@@ -79,17 +81,19 @@ namespace Serilog.Extensions.WhenRepeated
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
-            if (!isDisposed)
+            if (isDisposed)
             {
-                if (disposing)
-                {
-                    (wrappedSink as IDisposable)?.Dispose();
-                }
-
-                isDisposed = true;
+                return;
             }
+
+            if (disposing)
+            {
+                (wrappedSink as IDisposable)?.Dispose();
+            }
+
+            isDisposed = true;
         }
     }
 }

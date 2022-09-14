@@ -3,7 +3,7 @@ using Serilog.Events;
 
 namespace Serilog.Extensions.WhenRepeated
 {
-    internal class RepeatedMessagesCountEnricher : ILogEventEnricher
+    internal sealed class RepeatedMessagesCountEnricher : ILogEventEnricher
     {
         private readonly string propertyName;
 
