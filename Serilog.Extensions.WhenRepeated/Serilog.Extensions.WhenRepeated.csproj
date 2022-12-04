@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<IsPackable>true</IsPackable>
@@ -13,7 +13,7 @@
 
 	<PropertyGroup>
 		<PackageId>Serilog.Extensions.WhenRepeated</PackageId>
-		<PackageVersion>1.0.0</PackageVersion>
+		<PackageVersion>1.0.1</PackageVersion>
 		<Description>A wrapper for other Serilog sinks. Matches when message has already been logged. Useful if having an aggressive logger, and wants to throttle the output.</Description>
 		<RepositoryUrl>https://github.com/Hau-Hau/Serilog.Extensions.WhenRepeated</RepositoryUrl>
 		<RespositoryType>git</RespositoryType>

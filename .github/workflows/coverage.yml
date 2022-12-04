@@ -3,7 +3,11 @@ on:
   push:
     branches: [ main ]
 env:
-  DOTNET_VERSION: 6.0.x
+  DOTNET_VERSION: 7.0.x
+  # https://github.com/coverlet-coverage/coverlet/issues/1391
+  CollectCoverage: true
+  CoverletOutputFormat: lcov
+  CoverletOutput: /home/runner/.dotnet/
 jobs:
   build:
     name: coverage
@@ -22,7 +26,7 @@ jobs:
       run: dotnet test 
         ./Serilog.Extensions.WhenRepeated.Tests/Serilog.Extensions.WhenRepeated.Tests.csproj  
         --no-restore 
-        --framework net6.0
+        --framework net7.0
         /p:CollectCoverage=true 
         /p:CoverletOutputFormat=lcov 
         /p:CoverletOutput=/home/runner/.dotnet/
@@ -30,4 +34,4 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }} 
-        path-to-lcov: /home/runner/.dotnet/coverage.net6.0.info
+        path-to-lcov: /home/runner/.dotnet/coverage.net7.0.info
