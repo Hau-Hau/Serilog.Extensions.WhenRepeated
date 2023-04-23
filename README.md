@@ -56,7 +56,7 @@ new LoggerConfiguration()
   .Enrich.WithRepeatedMessagesCount("repeatCount") // Set name under which property will be available
   .WriteTo
   .WhenRepeated(
-    configureWrappedSink: x => x.Async(y.File("/path/to/log.txt")),
+    configureWrappedSink: x => x.Async(y => y.File("/path/to/log.txt")),
     options: new WhenRepeatedOptions() // Default options, needed to enable counting. By default increment repeated messages count when same message occurs in 10 seconds time interval.
   ).CreateLogger();
 ...
