@@ -23,13 +23,13 @@ new LoggerConfiguration()
   .Enrich.WithRepeatedMessagesCount("repeatCount")
   .WriteTo
   .WhenRepeated(
-    configureWrappedSink: x => x.Async(y.File("/path/to/log.txt")),
+    configureWrappedSink: x => x.Async(y => y.File("/path/to/log.txt")),
     options: new WhenRepeatedOptions(
-      onRepeat: x =>
+      onRepeat: (current, previous) =>
       {
         return new LogEvent(
-          timestamp: x.Timestamp,
-          level: x.Level,
+          timestamp: current.Timestamp,
+          level: current.Level,
           exception: null,
           messageTemplate: RepeatedMessageTemplate,
           properties: Array.Empty<LogEventProperty>());
